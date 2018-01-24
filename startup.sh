@@ -12,14 +12,24 @@ sudo mv kubernetes.list /etc/apt/sources.list.d/kubernetes.list
 
 sudo apt-get update
 sudo apt-get install -y apt-transport-https
+sudo apt-get install -y kubernetes-cni=0.5.1-00
+sudo apt-get install -y kubelet=1.8.7-00
+sudo apt-get install -y kubeadm=1.8.7-00
+sudo apt-get install --allow-downgrades -y kubectl=1.8.7-00
 sudo apt-get install -y docker.io
-sudo apt-get install -y kubelet kubeadm 
+
+cat << EOF > /etc/docker/daemon.json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"]
+}
+EOF
 
 sudo systemctl enable docker.service
+sudo service docker restart
 
 cat <<EOF > 20-cloud-provider.conf
 [Service]
-Environment="KUBELET_EXTRA_ARGS=--cloud-provider=gce"
+Environment="KUBELET_EXTRA_ARGS=--cloud-provider=gce --cgroup-driver=systemd"
 EOF
 
 sudo mv 20-cloud-provider.conf /etc/systemd/system/kubelet.service.d/
